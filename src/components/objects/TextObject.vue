@@ -1,5 +1,12 @@
 <template>
-  <span>{{ object.content }}</span>
+  <span
+    class="text-object"
+    :style="{
+      color: object.color,
+      fontSize: object.fontSize
+    }"
+    >{{ object.content }}</span
+  >
 </template>
 
 <script>
@@ -11,4 +18,7 @@ export default {
 };
 </script>
 
-<style scoped></style>
+<style scoped>
+.text-object {
+}
+</style>

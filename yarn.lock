@@ -4863,6 +4863,11 @@ kind-of@^6.0.0, kind-of@^6.0.2:
   resolved "https://registry.npm.taobao.org/kind-of/download/kind-of-6.0.3.tgz?cache=0&sync_timestamp=1579193926808&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2Fkind-of%2Fdownload%2Fkind-of-6.0.3.tgz#07c05034a6c349fa06e24fa35aa76db4580ce4dd"
   integrity sha1-B8BQNKbDSfoG4k+jWqdttFgM5N0=
 
+kitstrap@^0.5.0:
+  version "0.5.0"
+  resolved "https://registry.npm.taobao.org/kitstrap/download/kitstrap-0.5.0.tgz#064558988e4c191bc727c9880c70d6f6c0a5ae00"
+  integrity sha1-BkVYmI5MGRvHJ8mIDHDW9sClrgA=
+
 launch-editor-middleware@^2.2.1:
   version "2.2.1"
   resolved "https://registry.npm.taobao.org/launch-editor-middleware/download/launch-editor-middleware-2.2.1.tgz#e14b07e6c7154b0a4b86a0fd345784e45804c157"
@@ -5630,6 +5635,25 @@ obuf@^1.0.0, obuf@^1.1.2:
   version "1.1.2"
   resolved "https://registry.npm.taobao.org/obuf/download/obuf-1.1.2.tgz#09bea3343d41859ebd446292d11c9d4db619084e"
   integrity sha1-Cb6jND1BhZ69RGKS0RydTbYZCE4=
+
+office-ui-fabric-core@5.0.1:
+  version "5.0.1"
+  resolved "https://registry.npm.taobao.org/office-ui-fabric-core/download/office-ui-fabric-core-5.0.1.tgz#f6f27eb793ceca62366419877b73970de4841e52"
+  integrity sha1-9vJ+t5POymI2ZBmHe3OXDeSEHlI=
+
+office-ui-fabric-js@1.5.0:
+  version "1.5.0"
+  resolved "https://registry.npm.taobao.org/office-ui-fabric-js/download/office-ui-fabric-js-1.5.0.tgz#d77b778f79a6178f843dd757e4639ae05709d340"
+  integrity sha1-13t3j3mmF4+EPddX5GOa4FcJ00A=
+  dependencies:
+    office-ui-fabric-core "5.0.1"
+
+office-ui-fabric-vue@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.npm.taobao.org/office-ui-fabric-vue/download/office-ui-fabric-vue-1.2.0.tgz#95ee30ee3ee83b2eff82957652adf4153d0bb2ac"
+  integrity sha1-le4w7j7oOy7/gpV2Uq30FT0Lsqw=
+  dependencies:
+    office-ui-fabric-js "1.5.0"
 
 on-finished@~2.3.0:
   version "2.3.0"
