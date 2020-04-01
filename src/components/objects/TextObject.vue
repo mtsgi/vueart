@@ -3,7 +3,10 @@
     class="text-object"
     :style="{
       color: object.color,
-      fontSize: object.fontSize
+      fontSize: object.fontSize,
+      fontWeight: object.fontWeight,
+      textShadow: object.textShadow,
+      fontFamily: object.fontFamily
     }"
     >{{ object.content }}</span
   >

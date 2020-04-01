@@ -3,14 +3,23 @@
     <h3>{{ selectedObject.type }}</h3>
     <div class="kit-sub">{{ selectedId }}</div>
     <div class="kit-flex">
-      <p class="kit-flex-grow">Top</p>
+      <p class="kit-flex-grow m-r">top</p>
       <ou-text-field v-model="updatedData.position.top" placeholder="Top" />
     </div>
     <div class="kit-flex">
-      <p class="kit-flex-grow">Left</p>
+      <p class="kit-flex-grow m-r">left</p>
       <ou-text-field v-model="updatedData.position.left" placeholder="Left" />
     </div>
     <ou-button type="primary" @click="onDelete">Delete Object</ou-button>
+    <div v-for="propName in propTypes[selectedObject.type]" :key="propName">
+      <div class="kit-flex">
+        <p class="kit-flex-grow m-r">{{ propName }}</p>
+        <ou-text-field
+          v-model="updatedData[propName]"
+          :placeholder="propName"
+        />
+      </div>
+    </div>
   </div>
 </template>
 
@@ -23,7 +32,14 @@ export default {
         position: {}
       },
       propTypes: {
-        TextObject: []
+        TextObject: [
+          "content",
+          "color",
+          "fontSize",
+          "fontWeight",
+          "textShadow",
+          "fontFamily"
+        ]
       }
     };
   },

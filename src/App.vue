@@ -32,6 +32,7 @@ export default {
       savedata: {
         objects: {},
         settings: {
+          title: "名称未設定",
           size: {
             width: "600px",
             height: "400px"
