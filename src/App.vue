@@ -46,7 +46,15 @@ export default {
   },
   methods: {
     addObject: function(objectData) {
-      this.$set(this.savedata.objects, uuid.v4(), objectData);
+      let obj = { ...objectData };
+      let num = Object.keys(this.savedata.objects).length + 1;
+      obj.position = {
+        top: `${num * 20}px`,
+        left: `${num * 20}px`
+      };
+      obj.zIndex = num;
+      obj.rotation = "0deg";
+      this.$set(this.savedata.objects, uuid.v4(), obj);
     },
     selectObject: function(objectId, objectData) {
       this.selectedId = objectId;

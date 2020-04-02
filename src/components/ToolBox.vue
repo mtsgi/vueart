@@ -81,11 +81,7 @@ export default {
         fontSize: "24px",
         fontWeight: "400",
         textShadow: "none",
-        fontFamily: "sans-serif",
-        position: {
-          top: "20px",
-          left: "20px"
-        }
+        fontFamily: "sans-serif"
       });
     }
   }

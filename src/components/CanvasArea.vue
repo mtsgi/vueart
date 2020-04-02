@@ -11,7 +11,9 @@
         @click.right.prevent="openContext(key, $event)"
         :style="{
           top: object.position.top,
-          left: object.position.left
+          left: object.position.left,
+          zIndex: object.zIndex,
+          transform: `rotate(${object.rotation})`
         }"
       >
         <component :is="object.type" :object="object"></component>
