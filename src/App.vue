@@ -1,45 +1,83 @@
 <template>
   <div id="app">
-    <canvas-area :savedata="savedata" />
     <tool-box :savedata="savedata" @add-object="addObject" />
+    <canvas-area :savedata="savedata" @select-object="selectObject" />
+    <property-window
+      :selected-object="selectedObject"
+      :selected-id="selectedId"
+      @update-object="updateObject"
+      @delete-object="deleteObject"
+      @clear="clear"
+    ></property-window>
   </div>
 </template>
 
 <script>
 import CanvasArea from "./components/CanvasArea.vue";
 import ToolBox from "./components/ToolBox.vue";
+import PropertyWindow from "./components/PropertyWindow.vue";
 import { uuid } from "vue-uuid";
+import "office-ui-fabric-vue/dist/index.css";
+import "kitstrap/d/kitstrap.css";
 
 export default {
   name: "App",
   components: {
     CanvasArea,
-    ToolBox
+    ToolBox,
+    PropertyWindow
   },
   data: function() {
     return {
       savedata: {
         objects: {},
         settings: {
+          title: "名称未設定",
           size: {
             width: "600px",
             height: "400px"
           },
-          backgound: "transparent"
+          background: "#ffffff"
         }
-      }
+      },
+      selectedId: "",
+      selectedObject: {}
     };
   },
   methods: {
     addObject: function(objectData) {
-      console.log(this.savedata.objects);
-      this.$set(this.savedata.objects, uuid.v4(), objectData);
+      let obj = { ...objectData };
+      let num = Object.keys(this.savedata.objects).length + 1;
+      obj.position = {
+        top: `${num * 20}px`,
+        left: `${num * 20}px`
+      };
+      obj.zIndex = num;
+      obj.rotation = "0deg";
+      this.$set(this.savedata.objects, uuid.v4(), obj);
+    },
+    selectObject: function(objectId, objectData) {
+      this.selectedId = objectId;
+      this.selectedObject = objectData;
+    },
+    updateObject: function(newData) {
+      this.savedata.objects[this.selectedId] = newData;
+    },
+    deleteObject: function() {
+      this.$delete(this.savedata.objects, this.selectedId);
+      this.selectedId = null;
+    },
+    clear: function() {
+      this.selectedId = null;
     }
   }
 };
 </script>
 
 <style>
+body {
+  background: #f0f0f0;
+}
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
