@@ -86,6 +86,32 @@ export default {
             icon: "",
             label: "書体"
           }
+        },
+        ImageObject: {
+          src: {
+            icon: "",
+            label: "画像パス"
+          },
+          width: {
+            icon: "",
+            label: "幅"
+          },
+          height: {
+            icon: "",
+            label: "高さ"
+          },
+          alt: {
+            icon: "",
+            label: "説明"
+          },
+          background: {
+            icon: "",
+            label: "背景"
+          },
+          blur: {
+            icon: "",
+            label: "ぼかし"
+          }
         }
       }
     };

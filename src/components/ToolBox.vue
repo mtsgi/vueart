@@ -19,7 +19,10 @@
               icon="InsertTextBox"
               name="テキストオブジェクト"
             />
-            <ou-contextual-menu-item name="画像オブジェクト" />
+            <ou-contextual-menu-item
+              @click="onAdd('ImageObject')"
+              name="画像オブジェクト"
+            />
             <ou-contextual-menu-item name="図形オブジェクト" />
           </div>
         </ou-contextual-menu>
@@ -69,20 +72,32 @@ export default {
   },
   data: function() {
     return {
-      canvasSettingModal: false
+      canvasSettingModal: false,
+      defaultProps: {
+        TextObject: {
+          type: "TextObject",
+          content: "Hello",
+          color: "#000000",
+          fontSize: "24px",
+          fontWeight: "400",
+          textShadow: "none",
+          fontFamily: "sans-serif"
+        },
+        ImageObject: {
+          type: "ImageObject",
+          src: "/img/icons/favicon-32x32.png",
+          width: "auto",
+          height: "auto",
+          background: "transparent",
+          alt: "",
+          blur: "0px"
+        }
+      }
     };
   },
   methods: {
     onAdd: function(type) {
-      this.$emit("add-object", {
-        type: type,
-        content: "Hello",
-        color: "#000000",
-        fontSize: "24px",
-        fontWeight: "400",
-        textShadow: "none",
-        fontFamily: "sans-serif"
-      });
+      this.$emit("add-object", this.defaultProps[type]);
     }
   }
 };
