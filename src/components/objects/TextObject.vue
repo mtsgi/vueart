@@ -21,7 +21,4 @@ export default {
 };
 </script>
 
-<style scoped>
-.text-object {
-}
-</style>
+<style scoped></style>

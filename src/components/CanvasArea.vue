@@ -36,11 +36,13 @@
 
 <script>
 import TextObject from "./objects/TextObject.vue";
+import ImageObject from "./objects/ImageObject.vue";
 
 export default {
   name: "CanvasArea",
   components: {
-    TextObject
+    TextObject,
+    ImageObject
   },
   computed: {
     canvasStyle: function() {
@@ -88,8 +90,6 @@ export default {
 }
 .object-wrapper:hover {
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5), 0 0 4px 0 rgba(255, 255, 255, 0.75);
-}
-button {
 }
 .context-menu {
   position: fixed;
