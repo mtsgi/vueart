@@ -23,7 +23,10 @@
               @click="onAdd('ImageObject')"
               name="画像オブジェクト"
             />
-            <ou-contextual-menu-item name="図形オブジェクト" />
+            <ou-contextual-menu-item
+              @click="onAdd('BoxObject')"
+              name="ボックスオブジェクト"
+            />
           </div>
         </ou-contextual-menu>
         <ou-command-button icon="StackIndicator">レイヤー</ou-command-button>
@@ -91,6 +94,15 @@ export default {
           background: "transparent",
           alt: "",
           blur: "0px"
+        },
+        BoxObject: {
+          type: "BoxObject",
+          width: "120px",
+          height: "80px",
+          color: "#aaddff",
+          borderWidth: "4px",
+          borderColor: "#7799aa",
+          radius: "10px"
         }
       }
     };

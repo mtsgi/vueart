@@ -49,8 +49,8 @@ export default {
       let obj = { ...objectData };
       let num = Object.keys(this.savedata.objects).length + 1;
       obj.position = {
-        top: `${num * 20}px`,
-        left: `${num * 20}px`
+        top: `${num * 8 + 20}px`,
+        left: `${num * 8 + 20}px`
       };
       obj.zIndex = num;
       obj.rotation = "0deg";

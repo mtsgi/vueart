@@ -112,6 +112,32 @@ export default {
             icon: "",
             label: "ぼかし"
           }
+        },
+        BoxObject: {
+          color: {
+            icon: "",
+            label: "色"
+          },
+          width: {
+            icon: "",
+            label: "幅"
+          },
+          height: {
+            icon: "",
+            label: "高さ"
+          },
+          radius: {
+            icon: "",
+            label: "角丸"
+          },
+          borderWidth: {
+            icon: "",
+            label: "縁太さ"
+          },
+          borderColor: {
+            icon: "",
+            label: "縁色"
+          }
         }
       }
     };

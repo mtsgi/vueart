@@ -37,12 +37,14 @@
 <script>
 import TextObject from "./objects/TextObject.vue";
 import ImageObject from "./objects/ImageObject.vue";
+import BoxObject from "./objects/BoxObject.vue";
 
 export default {
   name: "CanvasArea",
   components: {
     TextObject,
-    ImageObject
+    ImageObject,
+    BoxObject
   },
   computed: {
     canvasStyle: function() {
@@ -92,6 +94,7 @@ export default {
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5), 0 0 4px 0 rgba(255, 255, 255, 0.75);
 }
 .context-menu {
+  z-index: 10000;
   position: fixed;
   display: flex;
   flex-direction: column;
