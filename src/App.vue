@@ -11,7 +11,7 @@
   }
 
   export interface CanvasObject {
-    type: "text" | "box" | "image"
+    type: 'text' | 'box' | 'image';
   }
 
   const canvasData = reactive<CanvasData>({

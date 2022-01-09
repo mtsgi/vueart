@@ -7,11 +7,14 @@
 </script>
 
 <template>
-  <div class="canvas" :style="{
-    width: `${canvasData.width}px`,
-    height: `${canvasData.height}px`,
-    background: canvasData.background
-  }">
+  <div
+    class="canvas"
+    :style="{
+      width: `${canvasData.width}px`,
+      height: `${canvasData.height}px`,
+      background: canvasData.background
+    }"
+  >
     Width: <input type="number" v-model="canvasData.width" />
     <br />
     Height: <input type="number" v-model="canvasData.height" />
