@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { CanvasData } from '../App.vue';
+  import { CanvasData } from '../stores/canvas';
 
   defineProps<{
     canvasData: CanvasData;
@@ -14,13 +14,7 @@
       height: `${canvasData.height}px`,
       background: canvasData.background
     }"
-  >
-    Width: <input type="number" v-model="canvasData.width" />
-    <br />
-    Height: <input type="number" v-model="canvasData.height" />
-    <br />
-    Bg: <input type="text" v-model="canvasData.background" />
-  </div>
+  ></div>
 </template>
 
 <style lang="scss" scoped>
