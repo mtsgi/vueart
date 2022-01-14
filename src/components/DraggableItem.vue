@@ -23,7 +23,7 @@
 
   const onMouseDown = (event: MouseEvent) => {
     const target = event.target as HTMLElement;
-    if (target.classList.contains("handle")) {
+    if (target.classList.contains('handle')) {
       pos.sx = event.clientX;
       pos.sy = event.clientY;
       pos.dx = event.clientX;

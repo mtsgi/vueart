@@ -25,6 +25,7 @@
     width: 320px;
     height: auto;
     padding: 8px;
+    box-shadow: var(--elevation-shadow-tooltip);
 
     h3 {
       display: flex;

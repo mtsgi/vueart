@@ -1,7 +1,7 @@
 <script setup lang="ts">
   import { reactive, ref } from 'vue';
   import TheAppSettings from './TheAppSettings.vue';
-import TheCanvasSettings from './TheCanvasSettings.vue';
+  import TheCanvasSettings from './TheCanvasSettings.vue';
 
   interface HeaderMenu {
     label: string;
