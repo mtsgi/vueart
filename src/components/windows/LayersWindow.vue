@@ -15,7 +15,7 @@ const objects = computed(() => [...(docStore.activeDocument?.objects ?? [])].rev
       v-for="obj in objects"
       :key="obj.id"
       class="layer-item"
-      :class="{ selected: docStore.selectedObjectIds.has(obj.id) }"
+      :class="{ selected: docStore.activeSelectedIds.has(obj.id) }"
       @click="docStore.selectObject(obj.id, $event.shiftKey)"
     >
       <span class="layer-type">{{ obj.type[0].toUpperCase() }}</span>

@@ -5,10 +5,12 @@
  */
 import { useUiStore } from '@/stores/useUiStore'
 import { useDocumentStore } from '@/stores/useDocumentStore'
+import { useHistory } from '@/composables/useHistory'
 import AboutDialog from '@/components/dialogs/AboutDialog.vue'
 
 const uiStore = useUiStore()
 const docStore = useDocumentStore()
+const { commit } = useHistory()
 
 /** 新規キャンバスを作成してMDIに追加 */
 function onNewCanvas() {
@@ -38,6 +40,7 @@ const menuItems = [
       { label: 'コピー(C)', action: () => {} },
       { label: '貼り付け(V)', action: () => {} },
       { label: '削除(D)', action: () => {
+        commit() // 削除前にスナップショットを履歴に積む
         Array.from(docStore.activeSelectedIds).forEach((id: string) => docStore.removeObject(id))
       }},
     ],

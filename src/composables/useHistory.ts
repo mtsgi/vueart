@@ -34,6 +34,7 @@ export function useHistory() {
       // テキスト入力中は無視
       if ((e.target as HTMLElement).tagName === 'INPUT' || (e.target as HTMLElement).tagName === 'TEXTAREA') return
       e.preventDefault()
+      commit() // 削除前にスナップショットを履歴に積む
       Array.from(docStore.activeSelectedIds).forEach((id: string) => docStore.removeObject(id))
     }
   }

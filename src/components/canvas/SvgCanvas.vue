@@ -4,7 +4,7 @@
  * canvasId に対応するドキュメントをストアから取得し、<svg>要素として描画する。
  * 図形の追加・選択・ドラッグ移動のインタラクションを管理する。
  */
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useDocumentStore } from '@/stores/useDocumentStore'
 import { useUiStore } from '@/stores/useUiStore'
 import { useHistory } from '@/composables/useHistory'
@@ -74,6 +74,16 @@ function onSvgMousemove(e: MouseEvent) {
 }
 
 function onSvgMouseup() {
+  finishDrag()
+}
+
+/** window レベルの mouseup ハンドラ（SVG外でドラッグ終了した場合も確実に解除する） */
+function onWindowMouseup() {
+  finishDrag()
+}
+
+/** ドラッグ状態を確定・クリアする共通処理 */
+function finishDrag() {
   if (dragState.value) {
     commit()
     dragState.value = null
@@ -155,6 +165,10 @@ function createObjectAt(e: MouseEvent) {
   // 図形追加後は選択ツールに戻す
   uiStore.setTool('select')
 }
+
+// SVG外でマウスボタンを離した場合もドラッグを確実に終了させる
+onMounted(() => window.addEventListener('mouseup', onWindowMouseup))
+onUnmounted(() => window.removeEventListener('mouseup', onWindowMouseup))
 </script>
 
 <template>

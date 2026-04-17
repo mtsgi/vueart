@@ -1,6 +1,6 @@
 /**
- * Export utilities — decoupled from UI components.
- * Converts a live <svg> DOM element to PNG, JPEG, or .svg file download.
+ * エクスポートユーティリティ — UIコンポーネントから分離。
+ * ライブな <svg> DOM要素を PNG、JPEG、または .svg ファイルとしてダウンロードする。
  */
 
 function svgToBlob(svgEl: SVGElement): Blob {
@@ -15,7 +15,8 @@ function triggerDownload(blob: Blob, filename: string) {
   a.href = url
   a.download = filename
   a.click()
-  URL.revokeObjectURL(url)
+  // ダウンロード開始前にURLが無効化されないよう、次のtickで解放する
+  setTimeout(() => URL.revokeObjectURL(url), 0)
 }
 
 export async function exportAsPng(svgEl: SVGElement, filename = 'export.png'): Promise<void> {
