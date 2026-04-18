@@ -32,20 +32,20 @@ function onDelete() {
 <template>
   <div class="props-panel">
     <div v-if="!obj" class="no-selection">
-      <p>No object selected</p>
-      <p class="hint">Click a shape to select it</p>
+      <p>オブジェクト未選択</p>
+      <p class="hint">図形をクリックして選択してください</p>
     </div>
 
     <template v-else>
       <!-- Object info -->
-      <div class="section-title">Object</div>
+      <div class="section-title">オブジェクト</div>
       <div class="prop-row">
-        <label>Type</label>
+        <label>種別</label>
         <span class="value-text">{{ obj.type }}</span>
       </div>
 
       <!-- Position & Size -->
-      <div class="section-title">Transform</div>
+      <div class="section-title">位置・サイズ</div>
       <div class="prop-row">
         <label>X</label>
         <input type="number" :value="Math.round(obj.x)" @change="commitUpdate('x', +($event.target as HTMLInputElement).value)" />
@@ -63,27 +63,27 @@ function onDelete() {
         <input type="number" :value="Math.round(obj.height)" @change="commitUpdate('height', +($event.target as HTMLInputElement).value)" />
       </div>
       <div class="prop-row">
-        <label>Rot</label>
+        <label>回転</label>
         <input type="number" :value="obj.rotation" @change="commitUpdate('rotation', +($event.target as HTMLInputElement).value)" />
       </div>
       <div class="prop-row">
-        <label>Opacity</label>
+        <label>不透明度</label>
         <input type="range" min="0" max="1" step="0.01" :value="obj.opacity" @input="update('opacity', +($event.target as HTMLInputElement).value)" @change="commit()" />
       </div>
 
       <!-- Fill / Text color -->
       <template v-if="obj.type === 'rect' || obj.type === 'ellipse'">
-        <div class="section-title">Appearance</div>
+        <div class="section-title">外観</div>
         <div class="prop-row">
-          <label>Fill</label>
+          <label>塗り</label>
           <input type="color" :value="obj.fill" @input="update('fill', ($event.target as HTMLInputElement).value)" @change="commit()" />
         </div>
         <div class="prop-row">
-          <label>Stroke</label>
+          <label>線</label>
           <input type="color" :value="obj.stroke" @input="update('stroke', ($event.target as HTMLInputElement).value)" @change="commit()" />
         </div>
         <div class="prop-row">
-          <label>SW</label>
+          <label>線幅</label>
           <input type="number" min="0" :value="obj.strokeWidth" @change="commitUpdate('strokeWidth', +($event.target as HTMLInputElement).value)" />
         </div>
         <template v-if="obj.type === 'rect'">
@@ -95,34 +95,50 @@ function onDelete() {
       </template>
 
       <template v-if="obj.type === 'text'">
-        <div class="section-title">Text</div>
+        <div class="section-title">テキスト</div>
         <div class="prop-row">
-          <label>Text</label>
+          <label>内容</label>
           <input type="text" :value="obj.text" @change="commitUpdate('text', ($event.target as HTMLInputElement).value)" />
         </div>
         <div class="prop-row">
-          <label>Size</label>
+          <label>サイズ</label>
           <input type="number" min="4" :value="obj.fontSize" @change="commitUpdate('fontSize', +($event.target as HTMLInputElement).value)" />
         </div>
         <div class="prop-row">
-          <label>Color</label>
+          <label>色</label>
           <input type="color" :value="obj.fill" @input="update('fill', ($event.target as HTMLInputElement).value)" @change="commit()" />
+        </div>
+        <div class="prop-row">
+          <label>横揃え</label>
+          <div class="btn-group">
+            <button :class="{ active: obj.textAnchor === 'start' }" @click="commitUpdate('textAnchor', 'start')" title="左揃え">左</button>
+            <button :class="{ active: obj.textAnchor === 'middle' }" @click="commitUpdate('textAnchor', 'middle')" title="中央揃え">中</button>
+            <button :class="{ active: obj.textAnchor === 'end' }" @click="commitUpdate('textAnchor', 'end')" title="右揃え">右</button>
+          </div>
+        </div>
+        <div class="prop-row">
+          <label>縦揃え</label>
+          <div class="btn-group">
+            <button :class="{ active: !obj.verticalAlign || obj.verticalAlign === 'top' }" @click="commitUpdate('verticalAlign', 'top')" title="上揃え">上</button>
+            <button :class="{ active: obj.verticalAlign === 'middle' }" @click="commitUpdate('verticalAlign', 'middle')" title="中央揃え">中</button>
+            <button :class="{ active: obj.verticalAlign === 'bottom' }" @click="commitUpdate('verticalAlign', 'bottom')" title="下揃え">下</button>
+          </div>
         </div>
       </template>
 
       <!-- SVG Filter -->
-      <div class="section-title">Filter</div>
+      <div class="section-title">フィルタ</div>
       <div class="prop-row">
-        <label>Effect</label>
+        <label>エフェクト</label>
         <select :value="obj.filterId ?? ''" @change="commitUpdate('filterId', ($event.target as HTMLSelectElement).value || null)">
-          <option value="">None</option>
+          <option value="">なし</option>
           <option v-for="f in filterDefs" :key="f.id" :value="f.id">{{ f.name }}</option>
         </select>
       </div>
 
       <!-- Delete -->
       <div class="section-actions">
-        <button class="delete-btn" @click="onDelete">Delete</button>
+        <button class="delete-btn" @click="onDelete">削除</button>
       </div>
     </template>
   </div>
@@ -218,6 +234,35 @@ function onDelete() {
   margin-top: 10px;
   display: flex;
   justify-content: flex-end;
+}
+
+.btn-group {
+  display: flex;
+  gap: 2px;
+  flex: 1;
+
+  button {
+    flex: 1;
+    height: 18px;
+    font-size: 10px;
+    cursor: pointer;
+    background: var(--panel-bg);
+    color: var(--text-primary);
+    border-top: 1px solid var(--win-border-light);
+    border-left: 1px solid var(--win-border-light);
+    border-right: 1px solid var(--win-border-dark);
+    border-bottom: 1px solid var(--win-border-dark);
+
+    &.active {
+      background: var(--accent);
+      color: white;
+      border-color: var(--win-border-dark);
+    }
+
+    &:active:not(.active) {
+      border-color: var(--win-border-dark) var(--win-border-light) var(--win-border-light) var(--win-border-dark);
+    }
+  }
 }
 
 .delete-btn {

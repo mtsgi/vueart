@@ -10,6 +10,9 @@ import { useDocumentStore } from '@/stores/useDocumentStore'
 import MdiWindow from './MdiWindow.vue'
 import CanvasWindow from '@/components/windows/CanvasWindow.vue'
 import ToolPaletteWindow from '@/components/windows/ToolPaletteWindow.vue'
+import ToolboxWindow from '@/components/windows/ToolboxWindow.vue'
+import PropertiesWindow from '@/components/windows/PropertiesWindow.vue'
+import LayersWindow from '@/components/windows/LayersWindow.vue'
 
 const uiStore = useUiStore()
 const docStore = useDocumentStore()
@@ -50,6 +53,7 @@ function onWorkspaceClick() {
       v-for="win in visibleWindows"
       :key="win.id"
       :win="win"
+      :active="win.kind === 'toolpalette' || win.id === uiStore.activeCanvasId"
       @close="onClose"
     >
       <!-- キャンバスウィンドウ -->
@@ -60,6 +64,18 @@ function onWorkspaceClick() {
       <!-- 操作ツールバー -->
       <ToolPaletteWindow
         v-else-if="win.kind === 'toolpalette'"
+      />
+      <!-- ツールボックス -->
+      <ToolboxWindow
+        v-else-if="win.kind === 'toolbox'"
+      />
+      <!-- プロパティパネル -->
+      <PropertiesWindow
+        v-else-if="win.kind === 'properties'"
+      />
+      <!-- レイヤーパネル -->
+      <LayersWindow
+        v-else-if="win.kind === 'layers'"
       />
     </MdiWindow>
   </div>

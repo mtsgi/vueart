@@ -23,16 +23,4 @@ function filterAttr(id: string | null) {
     style="cursor: move"
     @mousedown.stop="emit('select', obj.id, $event)"
   />
-  <rect
-    v-if="selected"
-    :x="obj.x - 1"
-    :y="obj.y - 1"
-    :width="obj.width + 2"
-    :height="obj.height + 2"
-    fill="none"
-    stroke="#4a9eff"
-    stroke-width="1"
-    stroke-dasharray="4 2"
-    pointer-events="none"
-  />
 </template>

@@ -4,20 +4,27 @@
  * shape コンポーネントの select イベント（mousedown由来）を
  * objectMousedown(id, e) としてまとめて上位に伝える。
  */
-import type { CanvasObject } from '@/types/objects'
+import type { CanvasObject, GroupObject } from '@/types/objects'
 import RectShape from './shapes/RectShape.vue'
 import EllipseShape from './shapes/EllipseShape.vue'
 import TextShape from './shapes/TextShape.vue'
 import ImageShape from './shapes/ImageShape.vue'
+import GroupShape from './shapes/GroupShape.vue'
 
-defineProps<{ obj: CanvasObject; selected: boolean }>()
+defineProps<{ obj: CanvasObject; selected: boolean; editingGroupId?: string | null }>()
 const emit = defineEmits<{
   // id: 対象オブジェクトID、e: 元の MouseEvent（shiftKey等を使用）
   objectMousedown: [id: string, e: MouseEvent]
+  // テキストオブジェクトのダブルクリック（インライン編集開始）
+  objectDblclick: [id: string, e: MouseEvent]
 }>()
 
 function onSelect(id: string, e: MouseEvent) {
   emit('objectMousedown', id, e)
+}
+
+function onDblclick(id: string, e: MouseEvent) {
+  emit('objectDblclick', id, e)
 }
 </script>
 
@@ -39,12 +46,21 @@ function onSelect(id: string, e: MouseEvent) {
     :obj="obj"
     :selected="selected"
     @select="onSelect"
+    @dblclick="onDblclick"
   />
   <ImageShape
     v-else-if="obj.type === 'image'"
     :obj="obj"
     :selected="selected"
     @select="onSelect"
+  />
+  <GroupShape
+    v-else-if="obj.type === 'group'"
+    :obj="(obj as GroupObject)"
+    :selected="selected"
+    :editing-group-id="editingGroupId"
+    @object-mousedown="onSelect"
+    @object-dblclick="onDblclick"
   />
 </template>
 

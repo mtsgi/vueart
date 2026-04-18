@@ -2,11 +2,14 @@
 /**
  * SvgFilterDefs — SVGフィルタ定義（<defs>内）
  * キャンバスIDに対応するドキュメントのフィルタ定義を<filter>要素として展開する。
- * v-html で挿入するマークアップは DOMPurify でサニタイズし、
- * SVGフィルタ系の要素・属性のみを許可する。
+ *
+ * セキュリティ注意:
+ * DOMPurify は HTML パーサーを使うためフィルタプリミティブ名（feGaussianBlur等）が
+ * 小文字化され、SVG で認識されなくなる問題がある。
+ * そのため DOMParser で SVG/XML としてパースし、プリミティブ名の大文字小文字を
+ * 保持したまま不正な要素・属性を除去する方式に変更。
  */
 import { computed } from 'vue'
-import DOMPurify from 'dompurify'
 import { useDocumentStore } from '@/stores/useDocumentStore'
 
 const props = defineProps<{ canvasId: string }>()
@@ -14,17 +17,18 @@ const props = defineProps<{ canvasId: string }>()
 const docStore = useDocumentStore()
 const filterDefs = computed(() => docStore.getOrCreateDocument(props.canvasId).filterDefs)
 
-// DOMPurify のサニタイズ設定（SVGフィルタ関連の要素・属性のみ許可）
-const ALLOWED_FILTER_TAGS = [
+// SVGフィルタで許可する要素名セット（case-sensitive）
+const ALLOWED_ELEMENTS = new Set([
   'feBlend', 'feColorMatrix', 'feComponentTransfer', 'feComposite',
   'feConvolveMatrix', 'feDiffuseLighting', 'feDisplacementMap', 'feDropShadow',
   'feFlood', 'feFuncA', 'feFuncB', 'feFuncG', 'feFuncR', 'feGaussianBlur',
   'feImage', 'feMerge', 'feMergeNode', 'feMorphology', 'feOffset',
-  'fePointLight', 'feSpecularLighting', 'feSpotLight', 'feTile', 'feTurbulence',
-  'animate', 'animateTransform', 'set',
-]
+  'feDistantLight', 'fePointLight', 'feSpecularLighting', 'feSpotLight',
+  'feTile', 'feTurbulence',
+])
 
-const ALLOWED_FILTER_ATTRS = [
+// SVGフィルタで許可する属性名セット
+const ALLOWED_ATTRS = new Set([
   'in', 'in2', 'result', 'x', 'y', 'width', 'height', 'dx', 'dy',
   'stdDeviation', 'operator', 'mode', 'type', 'values', 'tableValues',
   'slope', 'intercept', 'amplitude', 'exponent', 'offset', 'scale',
@@ -34,23 +38,46 @@ const ALLOWED_FILTER_ATTRS = [
   'targetX', 'targetY', 'edgeMode', 'kernelUnitLength', 'preserveAlpha',
   'order', 'k1', 'k2', 'k3', 'k4', 'azimuth', 'elevation',
   'pointsAtX', 'pointsAtY', 'pointsAtZ', 'limitingConeAngle', 'z',
-  'transform', 'href', 'preserveAspectRatio', 'crossorigin', 'id', 'class',
-  'begin', 'dur', 'end', 'repeatCount', 'repeatDur', 'fill', 'calcMode',
-  'keyTimes', 'keySplines', 'from', 'to', 'by',
-  'attributeName', 'attributeType', 'additive', 'accumulate',
-]
+  'flood-color', 'flood-opacity', 'color-interpolation-filters',
+  'id', 'class',
+])
 
-/** フィルタ内部のマークアップをサニタイズして安全な文字列を返す */
+/**
+ * SVGフィルタマークアップを DOMParser で SVG/XML としてパースし、
+ * 許可リストに含まれない要素・属性を除去して安全な innerHTML を返す。
+ * DOMPurify は HTML パーサーを使うのでキャメルケースが失われる問題があるため使わない。
+ */
 function sanitizeMarkup(markup: string): string {
   try {
-    return DOMPurify.sanitize(markup, {
-      USE_PROFILES: { svg: true, svgFilters: true },
-      ALLOWED_TAGS: ALLOWED_FILTER_TAGS,
-      ALLOWED_ATTR: ALLOWED_FILTER_ATTRS,
-    })
+    const wrapped = `<svg xmlns="http://www.w3.org/2000/svg"><filter>${markup}</filter></svg>`
+    const parsed = new DOMParser().parseFromString(wrapped, 'image/svg+xml')
+    // パースエラーチェック
+    if (parsed.querySelector('parsererror')) return ''
+    const filterEl = parsed.querySelector('filter')
+    if (!filterEl) return ''
+    // 許可リスト外の要素・属性を再帰的に除去
+    sanitizeNode(filterEl)
+    return filterEl.innerHTML
   } catch {
-    // サニタイズ失敗時は空文字列を返して安全に無効化する
     return ''
+  }
+}
+
+/** ノードを再帰的に走査して不正な要素・属性を削除する */
+function sanitizeNode(node: Element) {
+  for (const child of Array.from(node.children)) {
+    const tagName = child.localName // SVG パース済みなので localName は正しいケース
+    if (!ALLOWED_ELEMENTS.has(tagName)) {
+      child.remove()
+      continue
+    }
+    // 許可外の属性を削除
+    for (const attr of Array.from(child.attributes)) {
+      if (!ALLOWED_ATTRS.has(attr.name)) {
+        child.removeAttribute(attr.name)
+      }
+    }
+    sanitizeNode(child)
   }
 }
 </script>

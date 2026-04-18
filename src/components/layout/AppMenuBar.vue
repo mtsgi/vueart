@@ -6,11 +6,15 @@
 import { useUiStore } from '@/stores/useUiStore'
 import { useDocumentStore } from '@/stores/useDocumentStore'
 import { useHistory } from '@/composables/useHistory'
+import { useClipboard } from '@/composables/useClipboard'
+import { saveAsVad, loadVadFile } from '@/utils/fileIo'
 import AboutDialog from '@/components/dialogs/AboutDialog.vue'
 
 const uiStore = useUiStore()
 const docStore = useDocumentStore()
 const { commit } = useHistory()
+// Ctrl+C/V のキーボードショートカットはここで1箇所のみ登録する
+const { copySelected, pasteClipboard } = useClipboard({ registerShortcuts: true })
 
 /** 新規キャンバスを作成してMDIに追加 */
 function onNewCanvas() {
@@ -19,16 +23,47 @@ function onNewCanvas() {
   docStore.setActiveCanvas(canvasId)
 }
 
+/** .vad ファイルを開いて新規キャンバスとして読み込む */
+function onOpenFile() {
+  loadVadFile().then(doc => {
+    const canvasId = uiStore.addCanvas(doc.name)
+    docStore.getOrCreateDocument(canvasId, doc.name)
+    docStore.setActiveCanvas(canvasId)
+    docStore.restoreSnapshot(doc)
+  }).catch(err => {
+    // ファイルエラーのみコンソールに出力（キャンセルは無視）
+    if (err instanceof Error) console.error('[fileIo]', err.message)
+  })
+}
+
+/** アクティブドキュメントを .vad ファイルとして保存 */
+function onSaveFile() {
+  const doc = docStore.getSnapshot()
+  if (!doc) return
+  saveAsVad(doc)
+}
+
 // メニュー項目の定義
-const menuItems = [
+import { ref, computed } from 'vue'
+
+const openMenu = ref<string | null>(null)
+// Aboutダイアログ表示状態
+const showAbout = ref(false)
+
+/** ウィンドウIDから visible 状態を返すヘルパー */
+function isWindowVisible(id: string) {
+  return uiStore.windows.find(w => w.id === id)?.visible ?? false
+}
+
+const menuItems = computed(() => [
   {
     label: 'ファイル',
     items: [
       { label: '新規作成(N)', action: onNewCanvas },
-      { label: '開く(O)…', action: () => {} },
+      { label: '開く(O)…', action: onOpenFile },
       null,
-      { label: '上書き保存(S)', action: () => {} },
-      { label: '名前を付けて保存(A)…', action: () => {} },
+      { label: '上書き保存(S)', action: onSaveFile },
+      { label: '名前を付けて保存(A)…', action: onSaveFile },
     ],
   },
   {
@@ -37,8 +72,8 @@ const menuItems = [
       { label: '元に戻す(Z)  Ctrl+Z', action: () => {} },
       { label: 'やり直し(Y)  Ctrl+Y', action: () => {} },
       null,
-      { label: 'コピー(C)', action: () => {} },
-      { label: '貼り付け(V)', action: () => {} },
+      { label: 'コピー(C)  Ctrl+C', action: copySelected },
+      { label: '貼り付け(V)  Ctrl+V', action: pasteClipboard },
       { label: '削除(D)', action: () => {
         commit() // 削除前にスナップショットを履歴に積む
         Array.from(docStore.activeSelectedIds).forEach((id: string) => docStore.removeObject(id))
@@ -63,6 +98,11 @@ const menuItems = [
     label: 'ウィンドウ',
     items: [
       { label: '新規キャンバス(N)', action: onNewCanvas },
+      null,
+      { label: `${isWindowVisible('toolpalette') ? '✓ ' : '　'}[操作]ツールバー`, action: () => uiStore.toggleWindow('toolpalette') },
+      { label: `${isWindowVisible('toolbox') ? '✓ ' : '　'}ツールボックス`, action: () => uiStore.toggleWindow('toolbox') },
+      { label: `${isWindowVisible('properties') ? '✓ ' : '　'}プロパティ`, action: () => uiStore.toggleWindow('properties') },
+      { label: `${isWindowVisible('layers') ? '✓ ' : '　'}レイヤー`, action: () => uiStore.toggleWindow('layers') },
     ],
   },
   {
@@ -71,13 +111,7 @@ const menuItems = [
       { label: 'Vue Art Designer について', action: () => { showAbout.value = true } },
     ],
   },
-]
-
-// ドロップダウン表示制御
-import { ref } from 'vue'
-const openMenu = ref<string | null>(null)
-// Aboutダイアログ表示状態
-const showAbout = ref(false)
+])
 
 function toggleMenu(label: string) {
   openMenu.value = openMenu.value === label ? null : label
