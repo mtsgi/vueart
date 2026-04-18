@@ -27,6 +27,9 @@ export const useUiStore = defineStore('ui', () => {
   const nextZIndex = ref<number>(10)
   // アクティブキャンバスID
   const activeCanvasId = ref<string | null>(null)
+  // グリッドスナップ
+  const gridEnabled = ref(false)
+  const gridSize = ref(10)
 
   /** 新しいキャンバスウィンドウをMDI上に追加 */
   function addCanvas(title = '新規キャンバス') {
@@ -91,7 +94,7 @@ export const useUiStore = defineStore('ui', () => {
   }
 
   return {
-    windows, activeTool, nextZIndex, activeCanvasId,
+    windows, activeTool, nextZIndex, activeCanvasId, gridEnabled, gridSize,
     addCanvas, focusWindow, moveWindow, resizeWindow, toggleMinimize, closeWindow, setTool,
   }
 })

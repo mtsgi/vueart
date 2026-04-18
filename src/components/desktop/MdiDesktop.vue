@@ -50,6 +50,7 @@ function onWorkspaceClick() {
       v-for="win in visibleWindows"
       :key="win.id"
       :win="win"
+      :active="win.kind === 'toolpalette' || win.id === uiStore.activeCanvasId"
       @close="onClose"
     >
       <!-- キャンバスウィンドウ -->

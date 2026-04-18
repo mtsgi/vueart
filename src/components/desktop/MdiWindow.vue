@@ -9,7 +9,7 @@ import type { WindowState } from '@/types/ui'
 import { useUiStore } from '@/stores/useUiStore'
 import { useDraggable } from '@/composables/useDraggable'
 
-const props = defineProps<{ win: WindowState }>()
+const props = defineProps<{ win: WindowState; active?: boolean }>()
 const emit = defineEmits<{ close: [id: string] }>()
 
 const uiStore = useUiStore()
@@ -43,6 +43,7 @@ const style = computed(() => ({
     <!-- タイトルバー -->
     <div
       class="titlebar"
+      :class="{ active: active }"
       @mousedown.stop="onTitlebarMousedown"
     >
       <span class="titlebar__text">{{ win.title }}</span>
@@ -81,9 +82,10 @@ const style = computed(() => ({
   height: 20px;
   gap: 4px;
 
-  // アクティブ状態はz-indexが最大のウィンドウをCSSで制御できないため
-  // ここでは常にアクティブ色を使用（将来的にPropで制御）
-  background: var(--win-titlebar-active);
+  // アクティブ状態は :active クラスで制御
+  &.active {
+    background: var(--win-titlebar-active);
+  }
 
   &__text {
     color: var(--win-titlebar-text);

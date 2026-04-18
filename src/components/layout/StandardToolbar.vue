@@ -6,10 +6,14 @@
 import { useUiStore } from '@/stores/useUiStore'
 import { useDocumentStore } from '@/stores/useDocumentStore'
 import { useHistoryStore } from '@/stores/useHistoryStore'
+import { useClipboard } from '@/composables/useClipboard'
+import { saveAsVad, loadVadFile } from '@/utils/fileIo'
 
 const uiStore = useUiStore()
 const docStore = useDocumentStore()
 const historyStore = useHistoryStore()
+// キーボードショートカットはAppMenuBarで登録済みなのでここでは登録しない
+const { copySelected, pasteClipboard } = useClipboard()
 
 function onNewCanvas() {
   const canvasId = uiStore.addCanvas('新規キャンバス')
@@ -28,18 +32,35 @@ function onRedo() {
   if (snap) docStore.restoreSnapshot(snap)
 }
 
+function onOpenFile() {
+  loadVadFile().then(doc => {
+    const canvasId = uiStore.addCanvas(doc.name)
+    docStore.getOrCreateDocument(canvasId, doc.name)
+    docStore.setActiveCanvas(canvasId)
+    docStore.restoreSnapshot(doc)
+  }).catch(err => {
+    if (err instanceof Error) console.error('[fileIo]', err.message)
+  })
+}
+
+function onSaveFile() {
+  const doc = docStore.getSnapshot()
+  if (!doc) return
+  saveAsVad(doc)
+}
+
 // ツールバーボタン定義
 const buttons = [
   { icon: '📄', title: '新規作成(N)', action: onNewCanvas },
-  { icon: '📂', title: 'ファイルを開く(O)', action: () => {} },
-  { icon: '💾', title: '保存(S)', action: () => {} },
+  { icon: '📂', title: 'ファイルを開く(O)', action: onOpenFile },
+  { icon: '💾', title: '保存(S)', action: onSaveFile },
   null, // セパレータ
   { icon: '↩', title: '元に戻す(Z)  Ctrl+Z', action: onUndo },
   { icon: '↪', title: 'やり直し(Y)  Ctrl+Y', action: onRedo },
   null,
-  { icon: '✂', title: '切り取り', action: () => {} },
-  { icon: '📋', title: 'コピー', action: () => {} },
-  { icon: '📌', title: '貼り付け', action: () => {} },
+  { icon: '✂', title: '切り取り  Ctrl+X', action: () => {} },
+  { icon: '📋', title: 'コピー  Ctrl+C', action: copySelected },
+  { icon: '📌', title: '貼り付け  Ctrl+V', action: pasteClipboard },
 ]
 </script>
 

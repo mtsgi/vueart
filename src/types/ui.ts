@@ -15,3 +15,7 @@ export interface WindowState {
   minimized: boolean
   visible: boolean
 }
+
+// 選択オブジェクトのリサイズハンドル方向
+// nw/n/ne/e/se/s/sw/w = 8方向（コーナー4 + エッジ4）
+export type ResizeHandle = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w'

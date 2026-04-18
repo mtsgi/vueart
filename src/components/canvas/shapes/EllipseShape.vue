@@ -27,17 +27,4 @@ function filterAttr(id: string | null) {
     style="cursor: move"
     @mousedown.stop="emit('select', obj.id, $event)"
   />
-  <ellipse
-    v-if="selected"
-    :cx="cx(obj)"
-    :cy="cy(obj)"
-    :rx="obj.width / 2 + 1"
-    :ry="obj.height / 2 + 1"
-    fill="none"
-    stroke="#4a9eff"
-    stroke-width="1"
-    stroke-dasharray="4 2"
-    pointer-events="none"
-    :transform="`rotate(${obj.rotation}, ${cx(obj)}, ${cy(obj)})`"
-  />
 </template>

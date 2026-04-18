@@ -55,6 +55,54 @@ function onDelete() {
 
 const filterDefs = computed(() => docStore.activeDocument?.filterDefs ?? [])
 
+// ドラッグ並び替えの状態
+const dragSrcVisualIndex = ref<number | null>(null)
+const dragOverVisualIndex = ref<number | null>(null)
+
+/**
+ * 表示インデックス（上から下）→ 内部配列インデックス（下から上）の変換
+ * objects は reversed() されているため逆展開になる
+ */
+function visualToActual(vi: number): number {
+  const doc = docStore.activeDocument
+  if (!doc) return vi
+  return doc.objects.length - 1 - vi
+}
+
+function onDragStart(e: DragEvent, vi: number) {
+  dragSrcVisualIndex.value = vi
+  if (e.dataTransfer) {
+    e.dataTransfer.effectAllowed = 'move'
+    e.dataTransfer.setData('text/plain', String(vi))
+  }
+}
+
+function onDragOver(e: DragEvent, vi: number) {
+  e.preventDefault()
+  if (e.dataTransfer) e.dataTransfer.dropEffect = 'move'
+  dragOverVisualIndex.value = vi
+}
+
+function onDragLeave() {
+  dragOverVisualIndex.value = null
+}
+
+function onDrop(e: DragEvent, toVi: number) {
+  e.preventDefault()
+  dragOverVisualIndex.value = null
+  const fromVi = dragSrcVisualIndex.value
+  dragSrcVisualIndex.value = null
+  if (fromVi === null || fromVi === toVi) return
+
+  commit()
+  docStore.reorderObjects(visualToActual(fromVi), visualToActual(toVi))
+}
+
+function onDragEnd() {
+  dragSrcVisualIndex.value = null
+  dragOverVisualIndex.value = null
+}
+
 // タイプのラベル
 const typeLabels: Record<string, string> = {
   rect: '矩形',
@@ -75,12 +123,24 @@ const typeLabels: Record<string, string> = {
     <!-- オブジェクト一覧 -->
     <div class="object-stack__list">
       <div
-        v-for="obj in objects"
+        v-for="(obj, vi) in objects"
         :key="obj.id"
         class="obj-row"
-        :class="{ selected: docStore.activeSelectedIds.has(obj.id) }"
+        :class="{
+          selected: docStore.activeSelectedIds.has(obj.id),
+          'drag-over': dragOverVisualIndex === vi,
+        }"
+        draggable="true"
         @click="docStore.selectObject(obj.id, $event.shiftKey)"
+        @dragstart="onDragStart($event, vi)"
+        @dragover="onDragOver($event, vi)"
+        @dragleave="onDragLeave"
+        @drop="onDrop($event, vi)"
+        @dragend="onDragEnd"
       >
+        <!-- ドラッグハンドルアイコン -->
+        <span class="obj-row__drag-handle" title="ドラッグで並び替え">≡</span>
+
         <!-- タイプアイコン -->
         <span class="obj-row__type-badge">{{ obj.type[0].toUpperCase() }}</span>
 
@@ -248,6 +308,20 @@ const typeLabels: Record<string, string> = {
     background: var(--win-titlebar-active);
     color: white;
     .obj-row__type-badge { background: rgba(255,255,255,0.2); }
+  }
+
+  &.drag-over {
+    border-top: 2px solid var(--accent);
+  }
+
+  &__drag-handle {
+    color: var(--text-secondary);
+    font-size: 12px;
+    cursor: grab;
+    user-select: none;
+    flex-shrink: 0;
+    padding: 0 2px;
+    &:active { cursor: grabbing; }
   }
 
   &__type-badge {
