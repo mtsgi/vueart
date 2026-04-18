@@ -42,6 +42,8 @@ export interface TextObject extends BaseObject {
   fontWeight: string
   fill: string
   textAnchor: 'start' | 'middle' | 'end'
+  /** 縦揃え。未設定時は 'top' と同じ挙動（後方互換） */
+  verticalAlign?: 'top' | 'middle' | 'bottom'
 }
 
 export interface ImageObject extends BaseObject {
@@ -50,4 +52,10 @@ export interface ImageObject extends BaseObject {
   preserveAspectRatio: string
 }
 
-export type CanvasObject = RectObject | EllipseObject | TextObject | ImageObject
+export interface GroupObject extends BaseObject {
+  type: 'group'
+  /** 子オブジェクト — 座標はグループ origin 相対 */
+  children: CanvasObject[]
+}
+
+export type CanvasObject = RectObject | EllipseObject | TextObject | ImageObject | GroupObject

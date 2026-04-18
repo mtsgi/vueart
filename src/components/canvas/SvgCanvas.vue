@@ -8,6 +8,7 @@ import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue'
 import { useDocumentStore } from '@/stores/useDocumentStore'
 import { useUiStore } from '@/stores/useUiStore'
 import { useHistory } from '@/composables/useHistory'
+import { useAssetsStore } from '@/stores/useAssetsStore'
 import { generateId } from '@/utils/idGenerator'
 import type { CanvasObject, TextObject } from '@/types/objects'
 import type { ResizeHandle } from '@/types/ui'
@@ -20,6 +21,7 @@ const props = defineProps<{ canvasId: string }>()
 
 const docStore = useDocumentStore()
 const uiStore = useUiStore()
+const assetsStore = useAssetsStore()
 const { commit } = useHistory()
 
 // <svg>要素の参照（エクスポート時に使用）
@@ -30,6 +32,24 @@ const doc = computed(() => docStore.getOrCreateDocument(props.canvasId))
 
 // ドキュメント内のオブジェクト一覧
 const objects = computed(() => doc.value.objects)
+
+/** オブジェクトツリーをフラットに展開（ResizeHandles のレンダリングに使用）
+ *  子オブジェクトの座標は累積オフセットを加算した絶対座標に変換する */
+function flattenObjects(list: CanvasObject[], offsetX = 0, offsetY = 0): CanvasObject[] {
+  return list.flatMap(o => {
+    const absX = o.x + offsetX
+    const absY = o.y + offsetY
+    const absObj = { ...o, x: absX, y: absY }
+    if (o.type === 'group') {
+      return [absObj as CanvasObject, ...flattenObjects((o as import('@/types/objects').GroupObject).children, absX, absY)]
+    }
+    return [absObj as CanvasObject]
+  })
+}
+const flatObjects = computed(() => flattenObjects(objects.value))
+
+// グループ編集モード中のグループID（null = 非グループ編集）
+const editingGroupId = ref<string | null>(null)
 
 // このキャンバスの選択オブジェクトID集合
 const selectedIds = computed(() =>
@@ -201,6 +221,12 @@ function onSvgMousedown(e: MouseEvent) {
   uiStore.activeCanvasId = props.canvasId
 
   if (e.target === svgEl.value) {
+    if (editingGroupId.value) {
+      // グループ編集モード中の背景クリック → 編集モード終了
+      editingGroupId.value = null
+      docStore.clearSelection()
+      return
+    }
     if (uiStore.activeTool === 'select') {
       // 背景クリック → 選択解除
       docStore.clearSelection()
@@ -274,7 +300,8 @@ function onObjectMousedown(id: string, e: MouseEvent) {
   docStore.selectObject(id, e.shiftKey)
 
   if (uiStore.activeTool !== 'select') return
-  const obj = doc.value.objects.find(o => o.id === id)
+  // findObjectById で子オブジェクト（グループ内）も含めて検索
+  const obj = docStore.findObjectById(id)
   if (!obj || obj.locked) return
 
   // ドラッグ開始状態を記録
@@ -287,12 +314,28 @@ function onObjectMousedown(id: string, e: MouseEvent) {
   }
 }
 
+/**
+ * ダブルクリック処理
+ * - テキスト → インライン編集開始
+ * - グループ → グループ編集モード開始
+ */
+function onObjectDblclick(id: string) {
+  const obj = docStore.findObjectById(id)
+  if (!obj) return
+  if (obj.type === 'text') {
+    onTextDblclick(id)
+  } else if (obj.type === 'group') {
+    editingGroupId.value = id
+    docStore.selectObject(id)
+  }
+}
+
 /** リサイズハンドルの mousedown（ResizeHandles から呼ばれる） */
 function onResizeStart(objId: string, handle: ResizeHandle, e: MouseEvent) {
   docStore.setActiveCanvas(props.canvasId)
   uiStore.activeCanvasId = props.canvasId
 
-  const obj = doc.value.objects.find(o => o.id === objId)
+  const obj = docStore.findObjectById(objId)
   if (!obj || obj.locked) return
 
   resizeState.value = {
@@ -363,8 +406,20 @@ function createObjectAt(e: MouseEvent) {
 }
 
 // SVG外でマウスボタンを離した場合もインタラクションを確実に終了させる
-onMounted(() => window.addEventListener('mouseup', onWindowMouseup))
-onUnmounted(() => window.removeEventListener('mouseup', onWindowMouseup))
+function onKeydown(e: KeyboardEvent) {
+  if (e.key === 'Escape' && editingGroupId.value) {
+    editingGroupId.value = null
+    docStore.clearSelection()
+  }
+}
+onMounted(() => {
+  window.addEventListener('mouseup', onWindowMouseup)
+  window.addEventListener('keydown', onKeydown)
+})
+onUnmounted(() => {
+  window.removeEventListener('mouseup', onWindowMouseup)
+  window.removeEventListener('keydown', onKeydown)
+})
 
 // ---- ズーム/パン ----
 const zoom = ref(1.0)
@@ -420,6 +475,20 @@ const svgCursor = computed(() => {
 
 // zoom/pan/resetView を親コンポーネント（CanvasWindow）に公開
 defineExpose({ svgEl, zoom, panX, panY, resetView })
+
+/** アセットのドロップ処理 */
+async function onDrop(e: DragEvent) {
+  const assetId = e.dataTransfer?.getData('application/vueart-asset')
+  if (!assetId) return
+  docStore.setActiveCanvas(props.canvasId)
+  uiStore.activeCanvasId = props.canvasId
+  // ドロップ位置をキャンバス座標に変換（ズーム・パン補正）
+  const wrapper = (e.currentTarget as HTMLElement)
+  const rect = wrapper.getBoundingClientRect()
+  const x = (e.clientX - rect.left - panX.value) / zoom.value
+  const y = (e.clientY - rect.top - panY.value) / zoom.value
+  await assetsStore.addAssetToCanvas(assetId, docStore, { x: Math.round(x), y: Math.round(y) })
+}
 </script>
 
 <template>
@@ -428,6 +497,8 @@ defineExpose({ svgEl, zoom, panX, panY, resetView })
     :style="{ cursor: svgCursor }"
     @wheel.prevent="onSvgWheel"
     @mousedown.middle.prevent="onMiddleMousedown"
+    @dragover.prevent
+    @drop.prevent="onDrop"
   >
   <!-- ズーム/パン変換（CSS transform） -->
   <svg
@@ -480,13 +551,14 @@ defineExpose({ svgEl, zoom, panX, panY, resetView })
         v-if="obj.visible"
         :obj="obj"
         :selected="selectedIds.has(obj.id)"
+        :editing-group-id="editingGroupId"
         @object-mousedown="onObjectMousedown"
-        @object-dblclick="(id) => onTextDblclick(id)"
+        @object-dblclick="(id) => onObjectDblclick(id)"
       />
     </template>
 
     <!-- 選択オブジェクトのリサイズハンドル（全オブジェクトの上に重ねる） -->
-    <template v-for="obj in objects" :key="`handle-${obj.id}`">
+    <template v-for="obj in flatObjects" :key="`handle-${obj.id}`">
       <ResizeHandles
         v-if="obj.visible && selectedIds.has(obj.id) && editingTextId !== obj.id"
         :x="obj.x"

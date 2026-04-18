@@ -62,6 +62,12 @@ const buttons: ({ icon: IconProp; title: string; action: () => void } | null)[] 
   { icon: 'scissors',     title: '切り取り  Ctrl+X', action: () => {} },
   { icon: 'copy',         title: 'コピー  Ctrl+C', action: copySelected },
   { icon: 'paste',        title: '貼り付け  Ctrl+V', action: pasteClipboard },
+  null,
+  { icon: 'object-group',   title: 'グループ化  Ctrl+G',        action: () => docStore.groupObjects([...docStore.activeSelectedIds]) },
+  { icon: 'object-ungroup', title: 'グループ解除  Ctrl+Shift+G', action: () => {
+    const sel = [...docStore.activeSelectedIds]
+    sel.forEach(id => docStore.ungroupObject(id))
+  } },
 ]
 </script>
 

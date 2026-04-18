@@ -17,6 +17,8 @@ import {
   faLock, faLockOpen,
   faCheck, faMinus, faXmark,
   faGem, faClone, faCircleDot, faStamp, faImage,
+  faObjectGroup, faObjectUngroup,
+  faPlus, faBookmark, faCertificate,
 } from '@fortawesome/free-solid-svg-icons'
 import { faSquare, faCircle } from '@fortawesome/free-regular-svg-icons'
 
@@ -32,6 +34,8 @@ library.add(
   faLock, faLockOpen,
   faCheck, faMinus, faXmark,
   faGem, faClone, faCircleDot, faStamp, faImage,
+  faObjectGroup, faObjectUngroup,
+  faPlus, faBookmark, faCertificate,
   faSquare, faCircle,
 )
 

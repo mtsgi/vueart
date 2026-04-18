@@ -54,3 +54,47 @@ export function loadVadFile(): Promise<CanvasDocument> {
     input.click()
   })
 }
+
+/**
+ * ファイルダイアログを開き画像ファイルを読み込んで DataURL と自然サイズを返す。
+ * ユーザーがキャンセルした場合は Promise がペンディングのまま残る（then で利用することを想定）。
+ */
+export interface LoadedImage {
+  dataUrl: string
+  width: number
+  height: number
+  name: string
+}
+
+export function loadImageFile(): Promise<LoadedImage> {
+  return new Promise((resolve, reject) => {
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.accept = 'image/*'
+
+    input.addEventListener('change', () => {
+      const file = input.files?.[0]
+      if (!file) return
+
+      const reader = new FileReader()
+      reader.onload = () => {
+        const dataUrl = reader.result as string
+        const img = new Image()
+        img.onload = () => {
+          resolve({
+            dataUrl,
+            width: img.naturalWidth,
+            height: img.naturalHeight,
+            name: file.name,
+          })
+        }
+        img.onerror = () => reject(new Error('画像の読み込みに失敗しました'))
+        img.src = dataUrl
+      }
+      reader.onerror = () => reject(new Error('ファイルの読み込みに失敗しました'))
+      reader.readAsDataURL(file)
+    })
+
+    input.click()
+  })
+}

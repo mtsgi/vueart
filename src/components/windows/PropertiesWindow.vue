@@ -108,6 +108,22 @@ function onDelete() {
           <label>色</label>
           <input type="color" :value="obj.fill" @input="update('fill', ($event.target as HTMLInputElement).value)" @change="commit()" />
         </div>
+        <div class="prop-row">
+          <label>横揃え</label>
+          <div class="btn-group">
+            <button :class="{ active: obj.textAnchor === 'start' }" @click="commitUpdate('textAnchor', 'start')" title="左揃え">左</button>
+            <button :class="{ active: obj.textAnchor === 'middle' }" @click="commitUpdate('textAnchor', 'middle')" title="中央揃え">中</button>
+            <button :class="{ active: obj.textAnchor === 'end' }" @click="commitUpdate('textAnchor', 'end')" title="右揃え">右</button>
+          </div>
+        </div>
+        <div class="prop-row">
+          <label>縦揃え</label>
+          <div class="btn-group">
+            <button :class="{ active: !obj.verticalAlign || obj.verticalAlign === 'top' }" @click="commitUpdate('verticalAlign', 'top')" title="上揃え">上</button>
+            <button :class="{ active: obj.verticalAlign === 'middle' }" @click="commitUpdate('verticalAlign', 'middle')" title="中央揃え">中</button>
+            <button :class="{ active: obj.verticalAlign === 'bottom' }" @click="commitUpdate('verticalAlign', 'bottom')" title="下揃え">下</button>
+          </div>
+        </div>
       </template>
 
       <!-- SVG Filter -->
@@ -218,6 +234,35 @@ function onDelete() {
   margin-top: 10px;
   display: flex;
   justify-content: flex-end;
+}
+
+.btn-group {
+  display: flex;
+  gap: 2px;
+  flex: 1;
+
+  button {
+    flex: 1;
+    height: 18px;
+    font-size: 10px;
+    cursor: pointer;
+    background: var(--panel-bg);
+    color: var(--text-primary);
+    border-top: 1px solid var(--win-border-light);
+    border-left: 1px solid var(--win-border-light);
+    border-right: 1px solid var(--win-border-dark);
+    border-bottom: 1px solid var(--win-border-dark);
+
+    &.active {
+      background: var(--accent);
+      color: white;
+      border-color: var(--win-border-dark);
+    }
+
+    &:active:not(.active) {
+      border-color: var(--win-border-dark) var(--win-border-light) var(--win-border-light) var(--win-border-dark);
+    }
+  }
 }
 
 .delete-btn {
