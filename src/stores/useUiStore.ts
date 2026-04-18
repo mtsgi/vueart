@@ -18,9 +18,56 @@ const TOOLPALETTE_INITIAL: WindowState = {
   visible: true,
 }
 
+// ツールボックスの初期位置
+const TOOLBOX_INITIAL: WindowState = {
+  id: 'toolbox',
+  kind: 'toolbox',
+  title: 'ツール',
+  x: 20,
+  y: 60,
+  width: 44,
+  height: 180,
+  zIndex: 6,
+  minimized: false,
+  visible: false,
+}
+
+// プロパティパネルの初期位置
+const PROPERTIES_INITIAL: WindowState = {
+  id: 'properties',
+  kind: 'properties',
+  title: 'プロパティ',
+  x: 600,
+  y: 60,
+  width: 180,
+  height: 360,
+  zIndex: 7,
+  minimized: false,
+  visible: false,
+}
+
+// レイヤーパネルの初期位置
+const LAYERS_INITIAL: WindowState = {
+  id: 'layers',
+  kind: 'layers',
+  title: 'レイヤー',
+  x: 600,
+  y: 440,
+  width: 180,
+  height: 200,
+  zIndex: 8,
+  minimized: false,
+  visible: false,
+}
+
 export const useUiStore = defineStore('ui', () => {
   // MDIワークスペース上のフローティングウィンドウ一覧
-  const windows = ref<WindowState[]>([{ ...TOOLPALETTE_INITIAL }])
+  const windows = ref<WindowState[]>([
+    { ...TOOLPALETTE_INITIAL },
+    { ...TOOLBOX_INITIAL },
+    { ...PROPERTIES_INITIAL },
+    { ...LAYERS_INITIAL },
+  ])
   // アクティブなツール
   const activeTool = ref<ToolType>('select')
   // z-indexカウンター
@@ -88,14 +135,36 @@ export const useUiStore = defineStore('ui', () => {
     }
   }
 
+  /** ウィンドウの位置・サイズを一括更新（リサイズ操作用） */
+  function setWindowGeometry(id: string, x: number, y: number, width: number, height: number) {
+    const win = windows.value.find(w => w.id === id)
+    if (win) {
+      win.x = x
+      win.y = y
+      win.width = Math.max(80, width)
+      win.height = Math.max(40, height)
+    }
+  }
+
   /** アクティブツールを変更 */
   function setTool(tool: ToolType) {
     activeTool.value = tool
   }
 
+  /** ウィンドウの表示/非表示を切り替え（visibleだけ切り替え，非表示時は前面に出す） */
+  function toggleWindow(id: string) {
+    const win = windows.value.find(w => w.id === id)
+    if (!win) return
+    win.visible = !win.visible
+    if (win.visible) {
+      win.zIndex = ++nextZIndex.value
+      win.minimized = false
+    }
+  }
+
   return {
     windows, activeTool, nextZIndex, activeCanvasId, gridEnabled, gridSize,
-    addCanvas, focusWindow, moveWindow, resizeWindow, toggleMinimize, closeWindow, setTool,
+    addCanvas, focusWindow, moveWindow, resizeWindow, setWindowGeometry, toggleMinimize, closeWindow, setTool, toggleWindow,
   }
 })
 

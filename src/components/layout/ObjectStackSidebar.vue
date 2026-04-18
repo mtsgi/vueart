@@ -139,7 +139,9 @@ const typeLabels: Record<string, string> = {
         @dragend="onDragEnd"
       >
         <!-- ドラッグハンドルアイコン -->
-        <span class="obj-row__drag-handle" title="ドラッグで並び替え">≡</span>
+        <span class="obj-row__drag-handle" title="ドラッグで並び替え">
+          <font-awesome-icon icon="grip-lines" />
+        </span>
 
         <!-- タイプアイコン -->
         <span class="obj-row__type-badge">{{ obj.type[0].toUpperCase() }}</span>
@@ -155,12 +157,12 @@ const typeLabels: Record<string, string> = {
             class="ctrl-btn"
             :title="obj.visible ? '非表示にする' : '表示する'"
             @click.stop="docStore.updateObject(obj.id, { visible: !obj.visible })"
-          >{{ obj.visible ? '👁' : '🚫' }}</button>
+          ><font-awesome-icon :icon="obj.visible ? 'eye' : 'eye-slash'" /></button>
           <button
             class="ctrl-btn"
             :title="obj.locked ? 'ロック解除' : 'ロックする'"
             @click.stop="docStore.updateObject(obj.id, { locked: !obj.locked })"
-          >{{ obj.locked ? '🔒' : '🔓' }}</button>
+          ><font-awesome-icon :icon="obj.locked ? 'lock' : 'lock-open'" /></button>
         </div>
       </div>
 
@@ -173,7 +175,7 @@ const typeLabels: Record<string, string> = {
     <!-- プロパティパネル（折りたたみ） -->
     <div class="prop-panel">
       <button class="prop-panel__toggle" @click="propPanelOpen = !propPanelOpen">
-        <span>{{ propPanelOpen ? '▾' : '▸' }}</span>
+        <font-awesome-icon :icon="propPanelOpen ? 'chevron-down' : 'chevron-right'" />
         プロパティ
         <span v-if="selectedObj" class="prop-panel__type">（{{ typeLabels[selectedObj.type] ?? selectedObj.type }}）</span>
       </button>

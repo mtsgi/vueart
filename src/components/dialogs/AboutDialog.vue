@@ -14,7 +14,9 @@ defineEmits<{ close: [] }>()
       <!-- タイトルバー -->
       <div class="about-dialog__titlebar">
         <span class="about-dialog__title">Vue Art Designer について</span>
-        <button class="about-dialog__close" @click="$emit('close')" title="閉じる">✕</button>
+        <button class="about-dialog__close" @click="$emit('close')" title="閉じる">
+          <font-awesome-icon icon="xmark" />
+        </button>
       </div>
 
       <!-- コンテンツ -->

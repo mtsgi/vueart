@@ -9,7 +9,7 @@ const objects = computed(() => [...(docStore.activeDocument?.objects ?? [])].rev
 <template>
   <div class="layers-panel">
     <div class="layers-header">
-      <span>{{ objects.length }} object{{ objects.length !== 1 ? 's' : '' }}</span>
+      <span>{{ objects.length }} 個のオブジェクト</span>
     </div>
     <div
       v-for="obj in objects"
@@ -23,13 +23,13 @@ const objects = computed(() => [...(docStore.activeDocument?.objects ?? [])].rev
       <div class="layer-actions">
         <button
           class="vis-btn"
-          :title="obj.visible ? 'Hide' : 'Show'"
+          :title="obj.visible ? '非表示にする' : '表示する'"
           @click.stop="docStore.updateObject(obj.id, { visible: !obj.visible })"
         >{{ obj.visible ? '👁' : '🚫' }}</button>
       </div>
     </div>
     <div v-if="objects.length === 0" class="empty-hint">
-      No objects yet.<br>Use a drawing tool to add shapes.
+      オブジェクトがありません。<br>描画ツールで図形を追加してください。
     </div>
   </div>
 </template>

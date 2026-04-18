@@ -2,7 +2,10 @@
 import type { TextObject } from '@/types/objects'
 
 const props = defineProps<{ obj: TextObject; selected: boolean }>()
-const emit = defineEmits<{ select: [id: string, e: MouseEvent] }>()
+const emit = defineEmits<{
+  select: [id: string, e: MouseEvent]
+  dblclick: [id: string, e: MouseEvent]
+}>()
 
 function filterAttr(id: string | null) {
   return id ? `url(#${id})` : undefined
@@ -24,5 +27,6 @@ function filterAttr(id: string | null) {
     dominant-baseline="auto"
     style="cursor: move"
     @mousedown.stop="emit('select', obj.id, $event)"
+    @dblclick.stop="emit('dblclick', obj.id, $event)"
   >{{ obj.text }}</text>
 </template>

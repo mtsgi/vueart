@@ -5,6 +5,7 @@
  * 将来的には外部画像ファイルの取り込みや組み込みシェイプライブラリを提供する拡張ポイント。
  */
 import { ref } from 'vue'
+import type { IconProp } from '@fortawesome/fontawesome-svg-core'
 
 // フォルダツリーの定義（将来的にはストアや外部ファイルから取得）
 interface AssetFolder {
@@ -15,7 +16,7 @@ interface AssetFolder {
 }
 interface AssetItem {
   label: string
-  icon: string
+  icon: IconProp
   description: string
 }
 
@@ -24,26 +25,26 @@ const folders = ref<AssetFolder[]>([
     label: '基本図形',
     open: true,
     items: [
-      { label: '矩形', icon: '▭', description: '矩形（角丸対応）' },
-      { label: '楕円', icon: '○', description: '楕円・円' },
-      { label: 'テキスト', icon: 'T', description: 'テキストオブジェクト' },
+      { label: '矩形',   icon: ['far', 'square'] as IconProp, description: '矩形（角丸対応）' },
+      { label: '楕円',   icon: ['far', 'circle'] as IconProp, description: '楕円・円' },
+      { label: 'テキスト', icon: 'font' as IconProp,              description: 'テキストオブジェクト' },
     ],
   },
   {
     label: 'SVGフィルタ素材',
     open: false,
     items: [
-      { label: 'ベベル&エンボス', icon: '◈', description: '立体ボタン風効果' },
-      { label: 'ドロップシャドウ', icon: '◻', description: '影効果' },
-      { label: 'インナーグロウ', icon: '◉', description: '内側発光' },
-      { label: 'エンボスボタン', icon: '◆', description: '凸型ボタン' },
+      { label: 'ベベル&エンボス',   icon: 'gem' as IconProp,        description: '立体ボタン風効果' },
+      { label: 'ドロップシャドウ', icon: 'clone' as IconProp,      description: '影効果' },
+      { label: 'インナーグロウ',   icon: 'circle-dot' as IconProp, description: '内側発光' },
+      { label: 'エンボスボタン',   icon: 'stamp' as IconProp,      description: '凸型ボタン' },
     ],
   },
   {
     label: '画像',
     open: false,
     items: [
-      { label: '画像を読み込む…', icon: '🖼', description: 'ローカルファイルから読み込み' },
+      { label: '画像を読み込む…', icon: 'image' as IconProp, description: 'ローカルファイルから読み込み' },
     ],
   },
 ])
@@ -69,7 +70,9 @@ function toggleFolder(folder: AssetFolder) {
       >
         <!-- フォルダ行 -->
         <button class="folder__header" @click="toggleFolder(folder)">
-          <span class="folder__arrow">{{ folder.open ? '▾' : '▸' }}</span>
+          <span class="folder__arrow">
+            <font-awesome-icon :icon="folder.open ? 'chevron-down' : 'chevron-right'" />
+          </span>
           <span class="folder__label">{{ folder.label }}</span>
         </button>
 
@@ -81,7 +84,7 @@ function toggleFolder(folder: AssetFolder) {
             class="asset-item"
             :title="item.description"
           >
-            <span class="asset-item__icon">{{ item.icon }}</span>
+            <span class="asset-item__icon"><font-awesome-icon :icon="item.icon" /></span>
             <span class="asset-item__label">{{ item.label }}</span>
           </button>
         </div>

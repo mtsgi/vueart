@@ -44,7 +44,18 @@ function onSaveFile() {
 }
 
 // メニュー項目の定義
-const menuItems = [
+import { ref, computed } from 'vue'
+
+const openMenu = ref<string | null>(null)
+// Aboutダイアログ表示状態
+const showAbout = ref(false)
+
+/** ウィンドウIDから visible 状態を返すヘルパー */
+function isWindowVisible(id: string) {
+  return uiStore.windows.find(w => w.id === id)?.visible ?? false
+}
+
+const menuItems = computed(() => [
   {
     label: 'ファイル',
     items: [
@@ -87,6 +98,11 @@ const menuItems = [
     label: 'ウィンドウ',
     items: [
       { label: '新規キャンバス(N)', action: onNewCanvas },
+      null,
+      { label: `${isWindowVisible('toolpalette') ? '✓ ' : '　'}[操作]ツールバー`, action: () => uiStore.toggleWindow('toolpalette') },
+      { label: `${isWindowVisible('toolbox') ? '✓ ' : '　'}ツールボックス`, action: () => uiStore.toggleWindow('toolbox') },
+      { label: `${isWindowVisible('properties') ? '✓ ' : '　'}プロパティ`, action: () => uiStore.toggleWindow('properties') },
+      { label: `${isWindowVisible('layers') ? '✓ ' : '　'}レイヤー`, action: () => uiStore.toggleWindow('layers') },
     ],
   },
   {
@@ -95,13 +111,7 @@ const menuItems = [
       { label: 'Vue Art Designer について', action: () => { showAbout.value = true } },
     ],
   },
-]
-
-// ドロップダウン表示制御
-import { ref } from 'vue'
-const openMenu = ref<string | null>(null)
-// Aboutダイアログ表示状態
-const showAbout = ref(false)
+])
 
 function toggleMenu(label: string) {
   openMenu.value = openMenu.value === label ? null : label

@@ -5,10 +5,10 @@ import type { ToolType } from '@/types/objects'
 const uiStore = useUiStore()
 
 const tools: { type: ToolType; icon: string; title: string }[] = [
-  { type: 'select',  icon: '↖',  title: 'Select (V)' },
-  { type: 'rect',    icon: '▭',  title: 'Rectangle (R)' },
-  { type: 'ellipse', icon: '○',  title: 'Ellipse (E)' },
-  { type: 'text',    icon: 'T',  title: 'Text (T)' },
+  { type: 'select',  icon: '↖',  title: '選択 (V)' },
+  { type: 'rect',    icon: '▭',  title: '矩形 (R)' },
+  { type: 'ellipse', icon: '○',  title: '楕円 (E)' },
+  { type: 'text',    icon: 'T',  title: 'テキスト (T)' },
 ]
 </script>
 

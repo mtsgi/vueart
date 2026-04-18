@@ -6,15 +6,16 @@
  */
 import { useUiStore } from '@/stores/useUiStore'
 import type { ToolType } from '@/types/objects'
+import type { IconProp } from '@fortawesome/fontawesome-svg-core'
 
 const uiStore = useUiStore()
 
 // ツール定義
-const tools: { type: ToolType; icon: string; label: string; key: string }[] = [
-  { type: 'select',  icon: '↖',  label: '選択',  key: 'V' },
-  { type: 'rect',    icon: '▭',  label: '矩形',  key: 'R' },
-  { type: 'ellipse', icon: '○',  label: '楕円',  key: 'E' },
-  { type: 'text',    icon: 'Ａ', label: 'テキスト', key: 'T' },
+const tools: { type: ToolType; icon: IconProp; label: string; key: string }[] = [
+  { type: 'select',  icon: 'arrow-pointer',    label: '選択',     key: 'V' },
+  { type: 'rect',    icon: ['far', 'square'],  label: '矩形',     key: 'R' },
+  { type: 'ellipse', icon: ['far', 'circle'],  label: '楕円',     key: 'E' },
+  { type: 'text',    icon: 'font',             label: 'テキスト', key: 'T' },
 ]
 </script>
 
@@ -30,7 +31,7 @@ const tools: { type: ToolType; icon: string; label: string; key: string }[] = [
         :title="`${tool.label}（${tool.key}）`"
         @click="uiStore.setTool(tool.type)"
       >
-        <span class="tool-btn__icon">{{ tool.icon }}</span>
+        <span class="tool-btn__icon"><font-awesome-icon :icon="tool.icon" /></span>
         <span class="tool-btn__label">{{ tool.label }}</span>
       </button>
     </div>

@@ -14,10 +14,16 @@ defineProps<{ obj: CanvasObject; selected: boolean }>()
 const emit = defineEmits<{
   // id: 対象オブジェクトID、e: 元の MouseEvent（shiftKey等を使用）
   objectMousedown: [id: string, e: MouseEvent]
+  // テキストオブジェクトのダブルクリック（インライン編集開始）
+  objectDblclick: [id: string, e: MouseEvent]
 }>()
 
 function onSelect(id: string, e: MouseEvent) {
   emit('objectMousedown', id, e)
+}
+
+function onDblclick(id: string, e: MouseEvent) {
+  emit('objectDblclick', id, e)
 }
 </script>
 
@@ -39,6 +45,7 @@ function onSelect(id: string, e: MouseEvent) {
     :obj="obj"
     :selected="selected"
     @select="onSelect"
+    @dblclick="onDblclick"
   />
   <ImageShape
     v-else-if="obj.type === 'image'"

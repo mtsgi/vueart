@@ -4,12 +4,12 @@
  * canvasId に対応するドキュメントをストアから取得し、<svg>要素として描画する。
  * 図形の追加・選択・ドラッグ移動のインタラクションを管理する。
  */
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue'
 import { useDocumentStore } from '@/stores/useDocumentStore'
 import { useUiStore } from '@/stores/useUiStore'
 import { useHistory } from '@/composables/useHistory'
 import { generateId } from '@/utils/idGenerator'
-import type { CanvasObject } from '@/types/objects'
+import type { CanvasObject, TextObject } from '@/types/objects'
 import type { ResizeHandle } from '@/types/ui'
 import SvgFilterDefs from './SvgFilterDefs.vue'
 import ShapeRenderer from './ShapeRenderer.vue'
@@ -59,6 +59,100 @@ const resizeState = ref<{
   origHeight: number
 } | null>(null)
 
+// ---- キャンバス自体のリサイズ状態 ----
+const canvasResizeState = ref<{
+  direction: string
+  startMouseX: number
+  startMouseY: number
+  origWidth: number
+  origHeight: number
+} | null>(null)
+
+/** キャンバスリサイズハンドルのスタイル（ズーム/パン補正済み絶対座標） */
+const canvasResizeHandleS = computed(() => ({
+  left: `${panX.value + doc.value.width * zoom.value / 2 - 6}px`,
+  top:  `${panY.value + doc.value.height * zoom.value + 1}px`,
+}))
+const canvasResizeHandleE = computed(() => ({
+  left: `${panX.value + doc.value.width * zoom.value + 1}px`,
+  top:  `${panY.value + doc.value.height * zoom.value / 2 - 6}px`,
+}))
+const canvasResizeHandleSE = computed(() => ({
+  left: `${panX.value + doc.value.width * zoom.value + 1}px`,
+  top:  `${panY.value + doc.value.height * zoom.value + 1}px`,
+}))
+
+/** キャンバスリサイズ開始 */
+function startCanvasResize(direction: string, e: MouseEvent) {
+  e.preventDefault()
+  e.stopPropagation()
+  canvasResizeState.value = {
+    direction,
+    startMouseX: e.clientX,
+    startMouseY: e.clientY,
+    origWidth: doc.value.width,
+    origHeight: doc.value.height,
+  }
+  function onMove(ev: MouseEvent) {
+    if (!canvasResizeState.value) return
+    const rs = canvasResizeState.value
+    // ズーム補正してSVG座標系の差分を計算
+    const dx = (ev.clientX - rs.startMouseX) / zoom.value
+    const dy = (ev.clientY - rs.startMouseY) / zoom.value
+    let w = rs.origWidth, h = rs.origHeight
+    if (rs.direction.includes('e')) w = Math.max(10, rs.origWidth + dx)
+    if (rs.direction.includes('s')) h = Math.max(10, rs.origHeight + dy)
+    docStore.updateCanvasSize(props.canvasId, w, h)
+  }
+  function onUp() {
+    canvasResizeState.value = null
+    window.removeEventListener('mousemove', onMove)
+    window.removeEventListener('mouseup', onUp)
+  }
+  window.addEventListener('mousemove', onMove)
+  window.addEventListener('mouseup', onUp)
+}
+
+// ---- テキストインライン編集 ----
+// 編集中のテキストオブジェクトID（null = 非編集モード）
+const editingTextId = ref<string | null>(null)
+// 編集中のテキスト内容（確定前の一時的な値）
+const editingTextValue = ref('')
+// foreignObject 内の input への ref（自動フォーカス用）
+const textInputRef = ref<HTMLInputElement | null>(null)
+
+/** テキストオブジェクトのダブルクリック → インライン編集開始 */
+function onTextDblclick(id: string) {
+  const obj = doc.value.objects.find(o => o.id === id) as TextObject | undefined
+  if (!obj) return
+  docStore.setActiveCanvas(props.canvasId)
+  uiStore.activeTool = 'select'
+  docStore.selectObject(id)
+  editingTextId.value = id
+  editingTextValue.value = obj.text
+  // 次の DOM 更新後に input にフォーカスを当てる
+  nextTick(() => textInputRef.value?.focus())
+}
+
+/** テキスト編集を確定してストアに反映 */
+function commitTextEdit() {
+  if (!editingTextId.value) return
+  commit()
+  docStore.updateObject(editingTextId.value, { text: editingTextValue.value })
+  editingTextId.value = null
+}
+
+/** テキスト編集をキャンセル */
+function cancelTextEdit() {
+  editingTextId.value = null
+}
+
+/** 編集中テキストオブジェクトの参照（foreignObject の位置算出用） */
+const editingTextObj = computed(() => {
+  if (!editingTextId.value) return null
+  return doc.value.objects.find(o => o.id === editingTextId.value) as TextObject | null
+})
+
 /**
  * リサイズ計算
  * ハンドル方向と移動量から新しい x/y/width/height を返す。
@@ -96,6 +190,12 @@ function applyResize(
 
 /** キャンバス背景クリック処理 */
 function onSvgMousedown(e: MouseEvent) {
+  // テキスト編集中の場合は確定して終了
+  if (editingTextId.value) {
+    commitTextEdit()
+    return
+  }
+
   // このキャンバスをアクティブに設定
   docStore.setActiveCanvas(props.canvasId)
   uiStore.activeCanvasId = props.canvasId
@@ -381,13 +481,14 @@ defineExpose({ svgEl, zoom, panX, panY, resetView })
         :obj="obj"
         :selected="selectedIds.has(obj.id)"
         @object-mousedown="onObjectMousedown"
+        @object-dblclick="(id) => onTextDblclick(id)"
       />
     </template>
 
     <!-- 選択オブジェクトのリサイズハンドル（全オブジェクトの上に重ねる） -->
     <template v-for="obj in objects" :key="`handle-${obj.id}`">
       <ResizeHandles
-        v-if="obj.visible && selectedIds.has(obj.id)"
+        v-if="obj.visible && selectedIds.has(obj.id) && editingTextId !== obj.id"
         :x="obj.x"
         :y="obj.y"
         :width="obj.width"
@@ -395,7 +496,58 @@ defineExpose({ svgEl, zoom, panX, panY, resetView })
         @resize-start="(handle, e) => onResizeStart(obj.id, handle, e)"
       />
     </template>
+
+    <!-- テキストインライン編集（foreignObjectでSVG内にネイティブinputを埋め込む） -->
+    <foreignObject
+      v-if="editingTextObj"
+      :x="editingTextObj.x - 2"
+      :y="editingTextObj.y - 2"
+      :width="Math.max(editingTextObj.width + 4, 120)"
+      :height="editingTextObj.height + 4"
+    >
+      <input
+        ref="textInputRef"
+        xmlns="http://www.w3.org/1999/xhtml"
+        class="text-edit-input"
+        type="text"
+        :value="editingTextValue"
+        :style="{
+          fontSize: `${editingTextObj.fontSize}px`,
+          fontFamily: editingTextObj.fontFamily,
+          fontWeight: editingTextObj.fontWeight,
+          color: editingTextObj.fill,
+          width: '100%',
+          height: '100%',
+        }"
+        @input="editingTextValue = ($event.target as HTMLInputElement).value"
+        @keydown.enter.prevent="commitTextEdit"
+        @keydown.escape.prevent="cancelTextEdit"
+        @blur="commitTextEdit"
+        @mousedown.stop
+        @click.stop
+      />
+    </foreignObject>
   </svg>
+
+  <!-- キャンバスリサイズハンドル（SVG外側、ズーム/パン反映済みの絶対座標で配置） -->
+  <div
+    class="canvas-resize-handle canvas-resize-handle--s"
+    :style="canvasResizeHandleS"
+    title="キャンバスの高さをリサイズ"
+    @mousedown.stop="startCanvasResize('s', $event)"
+  />
+  <div
+    class="canvas-resize-handle canvas-resize-handle--e"
+    :style="canvasResizeHandleE"
+    title="キャンバスの幅をリサイズ"
+    @mousedown.stop="startCanvasResize('e', $event)"
+  />
+  <div
+    class="canvas-resize-handle canvas-resize-handle--se"
+    :style="canvasResizeHandleSE"
+    title="キャンバスをリサイズ"
+    @mousedown.stop="startCanvasResize('se', $event)"
+  />
   </div>
 </template>
 
@@ -406,6 +558,34 @@ defineExpose({ svgEl, zoom, panX, panY, resetView })
   width: 100%;
   height: 100%;
   position: relative;
+}
+
+// キャンバスリサイズハンドル（SVG外側のハンドル）
+$ch: 8px;
+.canvas-resize-handle {
+  position: absolute;
+  background: var(--accent);
+  border: 1px solid var(--win-border-dark);
+  width: $ch;
+  height: $ch;
+  border-radius: 1px;
+  z-index: 5;
+  &--s  { cursor: s-resize; }
+  &--e  { cursor: e-resize; }
+  &--se { cursor: se-resize; }
+}
+</style>
+
+<style>
+/* foreignObject 内の input（scoped を外す必要がある） */
+.text-edit-input {
+  box-sizing: border-box;
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px dashed #4a9eff;
+  outline: none;
+  padding: 0 2px;
+  caret-color: #fff;
+  border-radius: 2px;
 }
 </style>
 

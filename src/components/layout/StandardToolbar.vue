@@ -8,6 +8,7 @@ import { useDocumentStore } from '@/stores/useDocumentStore'
 import { useHistoryStore } from '@/stores/useHistoryStore'
 import { useClipboard } from '@/composables/useClipboard'
 import { saveAsVad, loadVadFile } from '@/utils/fileIo'
+import type { IconProp } from '@fortawesome/fontawesome-svg-core'
 
 const uiStore = useUiStore()
 const docStore = useDocumentStore()
@@ -50,17 +51,17 @@ function onSaveFile() {
 }
 
 // ツールバーボタン定義
-const buttons = [
-  { icon: '📄', title: '新規作成(N)', action: onNewCanvas },
-  { icon: '📂', title: 'ファイルを開く(O)', action: onOpenFile },
-  { icon: '💾', title: '保存(S)', action: onSaveFile },
+const buttons: ({ icon: IconProp; title: string; action: () => void } | null)[] = [
+  { icon: 'file',         title: '新規作成(N)', action: onNewCanvas },
+  { icon: 'folder-open',  title: 'ファイルを開く(O)', action: onOpenFile },
+  { icon: 'floppy-disk',  title: '保存(S)', action: onSaveFile },
   null, // セパレータ
-  { icon: '↩', title: '元に戻す(Z)  Ctrl+Z', action: onUndo },
-  { icon: '↪', title: 'やり直し(Y)  Ctrl+Y', action: onRedo },
+  { icon: 'rotate-left',  title: '元に戻す(Z)  Ctrl+Z', action: onUndo },
+  { icon: 'rotate-right', title: 'やり直し(Y)  Ctrl+Y', action: onRedo },
   null,
-  { icon: '✂', title: '切り取り  Ctrl+X', action: () => {} },
-  { icon: '📋', title: 'コピー  Ctrl+C', action: copySelected },
-  { icon: '📌', title: '貼り付け  Ctrl+V', action: pasteClipboard },
+  { icon: 'scissors',     title: '切り取り  Ctrl+X', action: () => {} },
+  { icon: 'copy',         title: 'コピー  Ctrl+C', action: copySelected },
+  { icon: 'paste',        title: '貼り付け  Ctrl+V', action: pasteClipboard },
 ]
 </script>
 
@@ -70,7 +71,7 @@ const buttons = [
     <template v-for="(btn, i) in buttons" :key="i">
       <div v-if="btn === null" class="toolbar__sep" />
       <button v-else class="toolbar__btn" :title="btn.title" @click="btn.action">
-        {{ btn.icon }}
+        <font-awesome-icon :icon="btn.icon" />
       </button>
     </template>
   </div>

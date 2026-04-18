@@ -143,6 +143,14 @@ export const useDocumentStore = defineStore('document', () => {
     activeDocument.value?.filterDefs.push(filter)
   }
 
+  /** キャンバスドキュメントのサイズを更新（キャンバスリサイズ操作用） */
+  function updateCanvasSize(canvasId: string, width: number, height: number) {
+    const doc = documents.value.get(canvasId)
+    if (!doc) return
+    doc.width = Math.max(10, Math.round(width))
+    doc.height = Math.max(10, Math.round(height))
+  }
+
   return {
     documents,
     selectedObjectIds,
@@ -163,6 +171,7 @@ export const useDocumentStore = defineStore('document', () => {
     getSnapshot,
     restoreSnapshot,
     addFilterDef,
+    updateCanvasSize,
   }
 })
 
