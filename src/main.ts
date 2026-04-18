@@ -1,10 +1,8 @@
-import { createApp } from 'vue';
-import App from './App.vue';
-import {
-  allComponents,
-  provideFluentDesignSystem
-} from '@fluentui/web-components';
+import { createApp } from 'vue'
+import { createPinia } from 'pinia'
+import './style.scss'
+import App from './App.vue'
 
-provideFluentDesignSystem().register(allComponents);
-
-createApp(App).mount('#app');
+const app = createApp(App)
+app.use(createPinia())
+app.mount('#app')
